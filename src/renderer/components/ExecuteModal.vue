@@ -51,7 +51,7 @@
       },
       buy() {
         if (this.marketSummary && this.strategy) {
-          return this.strategy.volume / this.bid
+          return this.strategy.volume / this.bid;
         }
       },
       sell() {
