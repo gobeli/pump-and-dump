@@ -28,6 +28,6 @@ build_script:
   - yarn build
 
 artifacts:
-  - path: dist\*
+  - path: build\*
 
 test: off
