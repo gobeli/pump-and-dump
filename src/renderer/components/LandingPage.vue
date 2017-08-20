@@ -62,7 +62,6 @@
 </template>
 
 <script>
-  import SystemInformation from './LandingPage/SystemInformation';
   import { handleResponse } from '../helper';
 
   const storePrefix = 'pump_and_dump_';
