@@ -10,3 +10,4 @@ Setup generated with [electron-vue](https://github.com/SimulatedGREG/electron-vu
 ![alt text](https://raw.githubusercontent.com/gobeli/pump-and-dump/master/static/screen1.png)
 
 ![alt text](https://raw.githubusercontent.com/gobeli/pump-and-dump/master/static/screen2.png)
+
