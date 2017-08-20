@@ -1,9 +1,9 @@
 {
   "name": "pump-and-dump",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "author": "Etienne Gobeli <etienne.gobeli@students.fhnw.ch>",
-  "description": "An electron-vue project",
-  "license": null,
+  "description": "Pump and Dump application",
+  "license": "MIT",
   "main": "./dist/electron/main.js",
   "scripts": {
     "build": "node .electron-vue/build.js && electron-builder",
