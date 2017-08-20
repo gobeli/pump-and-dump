@@ -1,63 +1,63 @@
 <template>
   <div id="wrapper" v-if="!apiKey || !apiSecret">
-    <label for="apiKey">Api Key</label>
-    <input type="text" name="apiKey" v-model="apiModel.key">
-    <label for="apiSecret">Api Secret</label>
-    <input type="text" name="apiSecret" v-model="apiModel.secret">
-    <button @click="submit">Submit</button>
+    <el-form>
+      <el-form-item label="API Key">
+        <el-input style="width: 100%" v-model="apiModel.key"></el-input>
+      </el-form-item>
+      <el-form-item label="API Secret">
+        <el-input style="width: 100%" v-model="apiModel.secret"></el-input>
+      </el-form-item>
+      <el-button @click="submit">Submit</el-button>
+    </el-form>
   </div>
   <div class="container" style="margin-top: 1rem;" v-else>
     <execute-modal :market="market" :strategy="selectedStrategy" :open="executeModalShown" @close-modal="executeModalShown = false"></execute-modal>
-    <div class="content">
-      <div class="columns">
-        <div class="column">
-          <div class="card card-content">
-            <h2>Market</h2>
-            <div class="field">
-              <div class="control">
-                <input class="input" type="text" name="market" v-model="market"><br>
-              </div>
-            </div>
+    <el-row :gutter="20">
+      <el-col>
+        <el-card class="box-card">
+          <div slot="header" class="clearfix">
+            <h3>Market</h3>
           </div>
-        </div>
-      </div>
-
-      <div class="columns">
-        <div class="column">
-          <div class="card">
-            <div class="card-content">
-              <h2>Strategies</h2> 
-              <strategy-table :strategies="strategies" @use-strategy="val => useStrategy(val)" @delete-strategy="val => deleteStrategy(val)"></strategy-table>
-            </div>
+          <el-input style="width: 100%" v-model="market"></el-input>
+        </el-card>
+      </el-col>
+    </el-row>
+    <el-row :gutter="20">
+      <el-col :span="12">
+        <el-card>
+          <div slot="header" class="clearfix">
+            <h3>Strategies</h3>            
+          </div> 
+        <strategy-table :strategies="strategies" @use-strategy="val => useStrategy(val)" @delete-strategy="val => deleteStrategy(val)"></strategy-table>
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card>
+          <div slot="header" class="clearfix">
+            <h3>Add Strategy</h3>                        
           </div>
-        </div>
-        <div class="column">
-          <div class="card">
-            <div class="card-content">
-              <h2>Add Strategy</h2>
-              <strategy-form :strategy-model="strategyModel" @submit-strategy="submitStrategy()"></strategy-form>
-            </div>
+          <strategy-form :strategy-model="strategyModel" @submit-strategy="submitStrategy()"></strategy-form>
+        </el-card>
+      </el-col>
+    </el-row>
+    <el-row :gutter="20">
+      <el-col :span="12">
+        <el-card>
+          <div slot="header" class="clearfix">
+            <h3>Open Orders</h3>                        
           </div>
-        </div>
-      </div>
-
-      <div class="columns">
-        <div class="column">
-          <div class="card">
-            <div class="card-content">
-              <orders title="Open Orders" :orders="openOrders"></orders>
-            </div>
+          <orders :orders="openOrders"></orders>        
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card>
+          <div slot="header" class="clearfix">
+            <h3>Order History</h3>                        
           </div>
-        </div>
-        <div class="column">
-          <div class="card">
-            <div class="card-content">
-              <orders title="Order History" :orders="orderHistory"></orders>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+          <orders :orders="orderHistory"></orders>        
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -153,3 +153,14 @@
     },
   };
 </script>
+<style lang="scss" scoped="false">
+  .el-row {
+    margin-bottom: 20px;
+    &:last-child {
+      margin-bottom: 0;
+    }
+    h3 {
+      margin: 0;
+    }
+  }
+</style>

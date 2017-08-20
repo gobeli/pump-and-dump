@@ -1,25 +1,18 @@
 <template>
-  <form>
-    <div class="field">
-      <label for="volume">Volume BTC</label>   
-      <div class="control">
-        <input class="input" type="number" name="volume" v-model="strategyModel.volume"><br>
-      </div>
-    </div>
-    <div class="field">
-      <label for="buyAt">Buy at %</label>   
-      <div class="control">
-        <input class="input" type="number" name="buyAt" v-model="strategyModel.buyAt"><br>
-      </div>
-    </div>
-    <div class="field">
-      <label for="sellAt">Sell at %</label>   
-      <div class="control">
-        <input class="input" type="number" name="sellAt" v-model="strategyModel.sellAt"><br>
-      </div>
-    </div>
-    <button class="button is-info" @click="$emit('submit-strategy', strategyModel)">Submit</button>
-  </form>
+  <el-form label-position="top" label-width="100px" :model="strategyModel">
+    <el-form-item label="Volume BTC">
+      <el-input-number style="width: 100%" v-model="strategyModel.volume"></el-input-number>
+    </el-form-item>
+    <el-form-item label="Buy at %">
+      <el-input-number style="width: 100%" v-model="strategyModel.buyAt"></el-input-number>
+    </el-form-item>
+    <el-form-item label="Sell at %">
+      <el-input-number style="width: 100%" v-model="strategyModel.sellAt"></el-input-number>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="primary" @click="$emit('submit-strategy', strategyModel)">Create</el-button>
+    </el-form-item>
+  </el-form>
 </template>
 <script>
   export default {

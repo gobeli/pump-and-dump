@@ -1,23 +1,15 @@
 <template>
-  <div class="modal" :class="{ 'is-active': open }">
-    <div class="modal-background"></div>
-    <div class="modal-card">
-      <header class="modal-card-head">
-        <p class="modal-card-title">Use Strategy</p>
-        <button @click="$emit('close-modal')" class="delete"></button>
-      </header>
-      <section class="modal-card-body">
-        <div class="content">
-          <h3>Trade {{marketSummary.MarketName}}</h3>
-          <p>Buy: <strong>{{buy}} {{market}}</strong> at <strong>{{bid}}</strong> bid</p>
-          <p>Sell for: <strong>{{sell}} BTC</strong> at <strong>{{ask}}</strong> ask</p>
-        </div>
-      </section>
-      <footer class="modal-card-foot">
-        <a class="button is-info" @click="submit()">Submit</a>
-      </footer>
-    </div>
-  </div>
+  <el-dialog
+    title="Use Strategy"
+    :visible.sync="open"
+    size="tiny"
+    :before-close="() => $emit('close-modal')">
+    <h3>Trade {{marketSummary.MarketName}}</h3>
+    <p>Buy: <strong>{{quantity}} {{market}}</strong> at <strong>{{bid}}</strong> bid</p>
+    <p>Sell at <strong>{{ask}}</strong> ask</p>
+    <el-button type="primary" @click="submit()">Ok</el-button>
+  </el-dialog>
+  
 </template>
 <script>  
   import { handleResponse } from '../helper';
@@ -49,16 +41,11 @@
       ask() {
         return this.marketSummary.Ask * this.rateSell;
       },
-      buy() {
+      quantity() {
         if (this.marketSummary && this.strategy) {
           return this.strategy.volume / this.bid;
         }
       },
-      sell() {
-        if (this.marketSummary && this.strategy) {
-          return this.strategy.volume * (1 + (this.strategy.sellAt / 100));
-        }
-      }
     },
     methods: {
       update() {
@@ -69,8 +56,8 @@
           (data, err) => this.marketSummary = handleResponse(data, err, this)[0] || {});
       },
       submit() {
-        this.$bittrex.buylimit({ market: `BTC-${this.market}`, quantity: this.buy, rate: this.rateBuy }, (data, err) => { console.log(handleResponse(data, err, this)) });
-        this.$bittrex.selllimit({ market: `BTC-${this.market}`, quantity: this.buy, rate: this.rateSell }, (data, err) => { console.log(handleResponse(data, err, this)) });
+        this.$bittrex.buylimit({ market: `BTC-${this.market}`, quantity: this.quantity, rate: this.bid }, (data, err) => { console.log(handleResponse(data, err, this)) });
+        this.$bittrex.selllimit({ market: `BTC-${this.market}`, quantity: this.quantity, rate: this.ask }, (data, err) => { console.log(handleResponse(data, err, this)) });
         this.$bus.$emit('update');
       }
     }

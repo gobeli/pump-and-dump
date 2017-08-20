@@ -1,25 +1,31 @@
 <template>
-  <table>
-    <thead>
-      <tr>
-        <th>Volume</th>
-        <th>Buy at</th>
-        <th>Sell at</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="strategy in strategies">
-        <td>{{strategy.volume}} BTC</td>
-        <td>{{strategy.buyAt}}%</td>
-        <td>{{strategy.sellAt}}%</td>
-        <td>
-          <button class="button is-info" @click="$emit('use-strategy', strategy)">Use</button>
-          <button class="button is-danger" @click="$emit('delete-strategy', strategy)">Delete</button>
-        </td>
-      </tr>  
-    </tbody>
-  </table>
+  <el-table
+      :data="strategies"
+      style="width: 100%">
+      <el-table-column
+        prop="volume"
+        label="Volume">
+        <template scope="scope">
+          {{ scope.row.volume }} BTC
+        </template>
+      </el-table-column>
+      <el-table-column
+        prop="buyAt"
+        label="Buy at">
+      </el-table-column>
+      <el-table-column
+        prop="sellAt"
+        label="Sell at">
+      </el-table-column>
+      <el-table-column width="200">
+        <template scope="scope">      
+          <el-button-group>
+            <el-button type="primary" @click="$emit('use-strategy', scope.row)">Use</el-button>
+            <el-button type="danger" @click="$emit('delete-strategy', scope.row)">Delete</el-button>
+          </el-button-group>
+        </template>
+      </el-table-column>
+    </el-table>
 </template>
 <script>
   export default {
