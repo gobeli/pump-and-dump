@@ -6,7 +6,6 @@ import 'element-ui/lib/theme-default/index.css';
 
 import App from './App';
 import router from './router';
-import store from './store';
 
 import StrategyTable from './components/StrategyTable.vue';
 import StrategyForm from './components/StrategyForm.vue';
@@ -33,6 +32,5 @@ Vue.prototype.$bittrex = bittrex;
 new Vue({
   components: { App },
   router,
-  store,
   template: '<App/>',
 }).$mount('#app');
