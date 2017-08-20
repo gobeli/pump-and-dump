@@ -3,10 +3,10 @@
     <div class="messages">
       <el-row v-for="order in orders" class="message" :gutter="10" :key="order.OrderUuid">
         <el-col :span="12">
-          {{order.OrderType}}
+          {{order.OrderType.split('_')[1]}}
         </el-col>
         <el-col :span="12">
-          {{order.Quantity}}
+          <b>{{order.Quantity}}</b>
         </el-col>
       </el-row>
     </div>
