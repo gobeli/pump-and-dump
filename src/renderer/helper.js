@@ -1,7 +1,7 @@
 export function handleResponse(data, err, $this) {
   if (err) {
     $this.$message({
-      message: err,
+      message: err.message,
       type: 'error',
     });
     throw err;

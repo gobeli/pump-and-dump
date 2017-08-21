@@ -56,9 +56,26 @@
           (data, err) => this.marketSummary = handleResponse(data, err, this)[0] || {});
       },
       submit() {
-        this.$bittrex.buylimit({ market: `BTC-${this.market}`, quantity: this.quantity, rate: this.bid }, (data, err) => { console.log(handleResponse(data, err, this)) });
-        this.$bittrex.selllimit({ market: `BTC-${this.market}`, quantity: this.quantity, rate: this.ask }, (data, err) => { console.log(handleResponse(data, err, this)) });
+        this.$bittrex.buylimit({ market: `BTC-${this.market}`, quantity: this.quantity, rate: this.bid }, (data, err) => { 
+          const res = handleResponse(data, err, this);
+          if (res.uuid) {
+            this.$message({
+              message: 'Buy-Order successfull',
+              type: 'success',
+            });
+          }
+        });
+        this.$bittrex.selllimit({ market: `BTC-${this.market}`, quantity: this.quantity, rate: this.ask }, (data, err) => {
+          const res = handleResponse(data, err, this);
+          if (res.uuid) {
+            this.$message({
+              message: 'Sell-Order successfull',
+              type: 'success',
+            });
+          }
+        });
         this.$bus.$emit('update');
+        this.$emit('close-modal');
       }
     }
   }

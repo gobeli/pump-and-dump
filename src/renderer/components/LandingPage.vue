@@ -58,6 +58,7 @@
         </el-card>
       </el-col>
     </el-row>
+    <el-button type="primary" @click="logout">Logout</el-button>
   </div>
 </template>
 
@@ -109,7 +110,14 @@
       submit() {
         localStorage.setItem(`${storePrefix}APIKEY`, this.apiModel.key);
         localStorage.setItem(`${storePrefix}APISECRET`, this.apiModel.secret);
-        this.initialize();
+        if (this.apiModel.key && this.apiModel.secret) {
+          this.initialize();
+        }
+      },
+      logout() {
+        this.apiSecret = this.apiKey = '';
+        this.apiModel = { key: '', secret: '' };
+        this.submit();
       },
       initialize() {
         this.apiSecret = localStorage.getItem(`${storePrefix}APISECRET`);
@@ -130,6 +138,7 @@
         if (!this.market || this.market.length < 3) {
           return;
         }
+        console.log('hello')
         this.$bittrex.getopenorders(`BTC-${this.market}`, 
           (data, err) => this.openOrders = handleResponse(data, err, this));
 
