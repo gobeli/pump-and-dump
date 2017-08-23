@@ -12,10 +12,16 @@
       <el-table-column
         prop="buyAt"
         label="Buy at">
+        <template scope="scope">
+          {{ scope.row.buyAt }}%
+        </template>
       </el-table-column>
       <el-table-column
         prop="sellAt"
         label="Sell at">
+        <template scope="scope">
+          {{ scope.row.sellAt }}%
+        </template>
       </el-table-column>
       <el-table-column width="200">
         <template scope="scope">      
