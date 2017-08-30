@@ -23,11 +23,11 @@
           {{ scope.row.sellAt }}%
         </template>
       </el-table-column>
-      <el-table-column width="200">
+      <el-table-column width="300">
         <template scope="scope">      
           <el-button-group>
-            <el-button type="primary" @click="$emit('use-strategy', scope.row)">Use</el-button>
-            <el-button type="danger" @click="$emit('delete-strategy', scope.row)">Delete</el-button>
+            <el-button @click="$emit('use-strategy', scope.row)">Use</el-button>
+            <el-button icon="delete" @click="$emit('delete-strategy', scope.row)"></el-button>
           </el-button-group>
         </template>
       </el-table-column>

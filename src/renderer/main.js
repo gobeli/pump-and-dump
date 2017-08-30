@@ -2,6 +2,7 @@ import bittrex from 'node.bittrex.api';
 import ElementUI from 'element-ui';
 import Vue from 'vue';
 import axios from 'axios';
+import VueCharts from 'vue-charts';
 import 'element-ui/lib/theme-default/index.css';
 
 import App from './App';
@@ -12,7 +13,6 @@ import StrategyForm from './components/StrategyForm.vue';
 import Orders from './components/Orders.vue';
 import ExecuteModal from './components/ExecuteModal.vue';
 
-
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'));
 Vue.http = Vue.prototype.$http = axios;
 Vue.prototype.$bus = new Vue();
@@ -20,6 +20,7 @@ Vue.prototype.$bus = new Vue();
 Vue.config.productionTip = false;
 
 Vue.use(ElementUI);
+Vue.use(VueCharts);
 
 Vue.component('strategy-table', StrategyTable);
 Vue.component('strategy-form', StrategyForm);
