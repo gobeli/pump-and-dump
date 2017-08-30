@@ -9,14 +9,19 @@
     <el-form-item label="Sell at %">
       <el-input-number style="width: 100%" v-model="strategyModel.sellAt"></el-input-number>
     </el-form-item>
-    <el-form-item style="margin-bottom: 0">
-      <el-button type="primary" @click="$emit('submit-strategy', strategyModel)">Create</el-button>
-    </el-form-item>
   </el-form>
 </template>
 <script>
   export default {
     name: 'strategy-form',
-    props: ['strategyModel']
+    props: ['strategyModel'],
+    watch: {
+      strategyModel: {
+        handler(newVal) {
+          this.$emit('strategy-changed', newVal)
+        },
+        deep: true
+      }
+    }
   }
 </script>

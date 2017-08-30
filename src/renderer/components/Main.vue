@@ -2,13 +2,12 @@
   <div id="wrapper" v-if="!apiKey || !apiSecret">
   </div>
   <div class="container" style="margin-top: 1rem;" v-else>
-    <execute-modal :market="selectedMarket" :strategy="selectedStrategy" :open="executeModalShown" @close-modal="executeModalShown = false"></execute-modal>
+    <execute-modal :market="selectedMarket" :strategy="strategy" :open="executeModalShown" @close-modal="executeModalShown = false"></execute-modal>
     
     <el-dialog
       title="Use Strategy"
       :visible.sync="strategyModalShown"
       :before-close="_ => strategyModalShown = false">
-      <strategy-form :strategy-model="strategyModel" @submit-strategy="submitStrategy()"></strategy-form>        
     </el-dialog>
     <el-row :gutter="20">
       <el-col>
@@ -27,11 +26,11 @@
       <el-col :span="12">
         <el-card>
           <div slot="header" class="clearfix">
-            <h3>Strategies</h3>            
+            <h3>Strategy</h3>            
           </div> 
-        <strategy-table :strategies="strategies" @use-strategy="useStrategy" @delete-strategy="deleteStrategy"></strategy-table>
-        <br>
-        <el-button type="primary" icon="plus" @click="strategyModalShown = true"></el-button>
+          <strategy-form :strategy-model="strategy" @strategy-changed="submitStrategy"></strategy-form>        
+        <!-- <strategy-table :strategies="strategies" @use-strategy="useStrategy" @delete-strategy="deleteStrategy"></strategy-table> -->
+          <el-button type="primary" @click="useStrategy">Use</el-button>
         </el-card>
       </el-col>
       <el-col :span="12">
@@ -83,18 +82,11 @@
       markets: [],
       selectedMarket: '',
       // strategies
-      strategyModel: {
+      strategy: {
+        volume: 0,
         buyAt: 0,
-        sellAt: 0,
-        volume: 0
+        sellAt: 0
       },
-      get strategies() {
-        return JSON.parse(localStorage.getItem(`${storePrefix}STRATEGIES`))
-      },
-      set strategies(value) {
-        localStorage.setItem(`${storePrefix}STRATEGIES`, JSON.stringify(value));
-      },
-      selectedStrategy: {},
       strategyModalShown: false,
       // chart
       marketData: [],
@@ -134,6 +126,11 @@
 
       initialize() {
         this.market = localStorage.getItem(`${storePrefix}CURRENCY`);
+        this.selectedMarket = this.market;
+        const strategy = JSON.parse(localStorage.getItem(`${storePrefix}STRATEGY`));
+        if (strategy && strategy !== 'null') {
+          this.strategy = strategy;
+        } 
         if (this.apiSecret && this.apiKey) {
           this.$bittrex.options({
             'apikey' : this.apiKey,
@@ -147,12 +144,18 @@
       },
 
       getTicker() {
-        this.$bittrex.getticker({ market: `BTC-${this.market}` }, (data, err) => {
+        this.$bittrex.getticker({ market: `BTC-${this.selectedMarket}` }, (data, err) => {
           const tick = handleResponse(data, err, this);
           const date = new Date();
           const hours = date.getHours(), minutes = date.getMinutes(), seconds = date.getSeconds();
-          this.marketData.push({ timeStamp: `${hours}:${minutes}:${seconds}`, ask: tick.Ask, buy: tick.Ask * ((this.strategies[0].buyAt / 100) + 1), sell: tick.Ask * ((this.strategies[0].sellAt / 100) + 1),  });
+          this.marketData.push({ timeStamp: `${hours}:${minutes}:${seconds}`, ask: tick.Ask, buy: this.calcStrategy(tick.Ask, this.strategy.buyAt), sell: this.calcStrategy(tick.Ask, this.strategy.sellAt),  });
         });
+      },
+
+      calcStrategy(price, factor) {
+        if (price && factor) {
+          return price * ((factor / 100) + 1);
+        }
       },
 
       update(market) {
@@ -185,21 +188,20 @@
         cb([...new Set(markets)].map(m => ({ value: m })));
       },
 
-      submitStrategy() {
-        const strategies = this.strategies || [];
-        strategies.push(Object.assign({}, this.strategyModel, { uid: new Date().getTime() }));
-        this.strategies = strategies;
-        this.strategyModel = {};
-        this.strategyModalShown = false;
+      submitStrategy(value) {
+        localStorage.setItem(`${storePrefix}STRATEGY`, JSON.stringify(value));
       },
 
       deleteStrategy(strategy) {
         this.strategies = this.strategies.filter(s => s.uid !== strategy.uid)
       },
 
-      useStrategy(strategy) {
-        this.selectedStrategy = strategy;
-        this.executeModalShown = true;
+      useStrategy() {
+        if (this.strategy && this.strategy.volume > 0 && this.strategy.buyAt > 0 && this.strategy.sellAt > 0) {
+          this.executeModalShown = true;
+        } else {
+          this.$message({ message: 'Strategy is invalid', type: 'error' });
+        }
       }
     },
   };
