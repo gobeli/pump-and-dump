@@ -21,6 +21,9 @@
       marketSummary: {}
     }),
     watch: {
+      open() {
+        this.update();
+      },
       strategy() {
         this.update();
       },
@@ -59,7 +62,6 @@
         this.$bittrex.buylimit({ market: `BTC-${this.market}`, quantity: this.quantity, rate: this.bid }, (data, err) => { 
           const res = handleResponse(data, err, this);
           if (res.uuid) {
-            console.log({ market: `BTC-${this.market}`, quantity: this.quantity, rate: this.bid })
             this.$message({
               message: 'Buy-Order successfull',
               type: 'success',
@@ -81,6 +83,7 @@
         });
       },
       submit() {
+        this.$store.commit('SET_RUNNING', { running: true, settings: { buy: this.bid, sell: this.ask, quantity: this.quantity } });
         this.buy(() => this.sell(() => {
           this.$bus.$emit('update');
           this.$emit('close-modal');

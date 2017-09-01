@@ -16,6 +16,7 @@
             <h3>Market</h3>
           </div>
           <el-autocomplete class="inline-input" 
+            :disabled="$store.state.running"
             @select="update($event.value)" 
             v-model="market"
             :fetch-suggestions="findMarket" placeholder="Market" :trigger-on-focus="false"></el-autocomplete>
@@ -29,8 +30,11 @@
             <h3>Strategy</h3>            
           </div> 
           <strategy-form :strategy-model="strategy" @strategy-changed="submitStrategy"></strategy-form>        
-        <!-- <strategy-table :strategies="strategies" @use-strategy="useStrategy" @delete-strategy="deleteStrategy"></strategy-table> -->
-          <el-button type="primary" @click="useStrategy">Use</el-button>
+          <el-button style="float: right; margin-bottom: 20px" type="primary" v-if="!$store.state.running" @click="useStrategy">Use</el-button>
+          <el-button-group style="float: right; margin-bottom: 20px" v-if="$store.state.running">
+            <el-button type="danger" @click="cancel(false)">Cancel</el-button>
+            <el-button type="danger" @click="cancel(true)">Cancel and sell</el-button>
+          </el-button-group>
         </el-card>
       </el-col>
       <el-col :span="12">
@@ -39,8 +43,8 @@
             <h3>BTC-{{market}}</h3>                        
           </div>
           <vue-chart
-              :rows="marketData.map(x => ['', x.ask, x.buy, x.sell])"
-              :columns="[{ type: 'string', label: 'Time Stamp' }, { type: 'number', label: 'Ask' }, { type: 'number', label: 'Buy' }, { type: 'number', label: 'Sell' }]"
+              :rows="marketData.map(x => [null, x.ask, x.buy, x.sell])"
+              :columns="[{ type: 'string', label: '' },{ type: 'number', label: 'Ask' }, { type: 'number', label: 'Buy' }, { type: 'number', label: 'Sell' }]"
               :options="chartOptions"
           ></vue-chart>
         </el-card>
@@ -88,6 +92,7 @@
         sellAt: 0
       },
       strategyModalShown: false,
+      running: false,
       // chart
       marketData: [],
       chartStrategy: this.strategies ? this.strategies[0] : {},
@@ -114,7 +119,7 @@
       this.apiKey = getApiKey();
       this.apiSecret = getApiSecret();
       this.initialize();
-      this.$bus.$on('update', this.update.bind(this));
+      this.$bus.$on('update', _ => this.update(null));
     },
 
     methods: {
@@ -125,8 +130,6 @@
       },
 
       initialize() {
-        this.market = localStorage.getItem(`${storePrefix}CURRENCY`);
-        this.selectedMarket = this.market;
         const strategy = JSON.parse(localStorage.getItem(`${storePrefix}STRATEGY`));
         if (strategy && strategy !== 'null') {
           this.strategy = strategy;
@@ -137,9 +140,7 @@
             'apisecret' : this.apiSecret, 
           });
           this.$bittrex.getmarkets((data, err) => this.markets = handleResponse(data, err, this));
-          if (this.market) {
-            this.update();            
-          }
+          this.update(localStorage.getItem(`${storePrefix}CURRENCY`));            
         }
       },
 
@@ -148,32 +149,25 @@
           const tick = handleResponse(data, err, this);
           const date = new Date();
           const hours = date.getHours(), minutes = date.getMinutes(), seconds = date.getSeconds();
-          this.marketData.push({ timeStamp: `${hours}:${minutes}:${seconds}`, ask: tick.Ask, buy: this.calcStrategy(tick.Ask, this.strategy.buyAt), sell: this.calcStrategy(tick.Ask, this.strategy.sellAt),  });
+          this.marketData.push({ ask: tick.Ask, buy: this.$store.state.running ? this.$store.state.settings.buy : null, sell: this.$store.state.running ? this.$store.state.settings.sell : null  });
         });
       },
 
-      calcStrategy(price, factor) {
-        if (price && factor) {
-          return price * ((factor / 100) + 1);
-        }
-      },
-
       update(market) {
-        this.marketData = [];
-        clearInterval(this.tickerInterval);
-
-        if (market) {
+        
+        if (!!market === true) {
+          this.marketData = [];
           localStorage.setItem(`${storePrefix}CURRENCY`, market);
           this.market = market;
           this.selectedMarket = market;
+          clearInterval(this.tickerInterval);
+          this.getTicker();
+          this.tickerInterval = setInterval(this.getTicker.bind(this), 1000);
         }
 
-        if (!this.market || this.market.length < 3) {
-          return;
+        if (!this.market) {
+          return
         }
-
-        this.getTicker();
-        this.tickerInterval = setInterval(this.getTicker.bind(this), 1000);
 
         this.$bittrex.getopenorders({ market: `BTC-${this.market}` }, 
           (data, err) => this.openOrders = handleResponse(data, err, this));
@@ -201,6 +195,22 @@
           this.executeModalShown = true;
         } else {
           this.$message({ message: 'Strategy is invalid', type: 'error' });
+        }
+      },
+
+      cancel(sell) {
+        this.$store.commit('SET_RUNNING', { running: false });
+        if (sell) {
+          const rate = this.marketData[this.marketData.length - 1].ask;
+          this.$bittrex.selllimit({ market: `BTC-${this.market}`, quantity: this.$store.state.settings.quantity, rate }, (data, err) => {
+            const res = handleResponse(data, err, this);
+            if (res.uuid) {
+              this.$message({
+                message: 'Sell-Order successfull',
+                type: 'success',
+              });
+            }
+          })
         }
       }
     },

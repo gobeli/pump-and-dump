@@ -5,6 +5,7 @@ import axios from 'axios';
 import VueCharts from 'vue-charts';
 import 'element-ui/lib/theme-default/index.css';
 
+import Store from './store';
 import App from './App';
 import router from './router';
 
@@ -29,9 +30,19 @@ Vue.component('execute-modal', ExecuteModal);
 
 Vue.prototype.$bittrex = bittrex;
 
+// Vue.prototype.$bittrex.buylimit = (x, cb) => {
+//   console.log(x);
+//   cb({ result: { uuid: 1 } }, null);
+// };
+// Vue.prototype.$bittrex.selllimit = (x, cb) => {
+//   console.log(x);
+//   cb({ result: { uuid: 1 } }, null);
+// };
+
 /* eslint-disable no-new */
 new Vue({
   components: { App },
+  store: Store,
   router,
   template: '<App/>',
 }).$mount('#app');
