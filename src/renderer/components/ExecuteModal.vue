@@ -83,10 +83,10 @@
         });
       },
       submit() {
-        this.$store.commit('SET_RUNNING', { running: true, settings: { buy: this.bid, sell: this.ask, quantity: this.quantity } });
         this.buy(() => this.sell(() => {
           this.$bus.$emit('update');
           this.$emit('close-modal');
+          this.$store.commit('SET_RUNNING', { running: true, settings: { buy: this.bid, sell: this.ask, quantity: this.quantity } });
         }));
       }
     }
