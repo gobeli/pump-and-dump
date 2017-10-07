@@ -23,12 +23,18 @@ function createWindow() {
     width: 1000,
   });
 
+  mainWindow.webContents.on('crashed', () => {
+    mainWindow.destroy();
+    createWindow();
+  });
+
   mainWindow.loadURL(winURL);
 
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 }
+
 
 app.on('ready', createWindow);
 

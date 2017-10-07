@@ -54,7 +54,6 @@
   "dependencies": {
     "ajv": "^5.2.2",
     "axios": "^0.16.2",
-    "bulma": "^0.5.0",
     "chart.js": "^2.6.0",
     "element-ui": "^1.4.2",
     "node-sass": "^4.5.3",
