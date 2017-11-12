@@ -27,4 +27,7 @@ install:
 build_script:
   - yarn build
 
+artifacts:
+  - path: build\*
+
 test: off
