@@ -9,7 +9,7 @@ export default new Router({
     {
       path: '/app',
       name: 'landing-page',
-      component: require('@/components/Main'),
+      component: require('@/components/Main.vue').default,
       beforeEnter: (to, from, next) => {
         if (!getApiKey() || !getApiSecret()) {
           next('/login');
@@ -20,7 +20,7 @@ export default new Router({
     {
       path: '/login',
       name: 'login',
-      component: require('@/components/Login'),
+      component: require('@/components/Login.vue').default,
       beforeEnter: (to, from, next) => {
         if (getApiKey() && getApiSecret()) {
           next('/app');

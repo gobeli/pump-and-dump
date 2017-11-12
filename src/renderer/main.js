@@ -3,7 +3,6 @@ import ElementUI from 'element-ui';
 import Vue from 'vue';
 import axios from 'axios';
 import VueCharts from 'vue-charts';
-import 'element-ui/lib/theme-default/index.css';
 
 import Store from './store';
 import App from './App';
@@ -13,6 +12,8 @@ import StrategyTable from './components/StrategyTable.vue';
 import StrategyForm from './components/StrategyForm.vue';
 import Orders from './components/Orders.vue';
 import ExecuteModal from './components/ExecuteModal.vue';
+
+import 'element-ui/lib/theme-chalk/index.css';
 
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'));
 Vue.http = Vue.prototype.$http = axios;

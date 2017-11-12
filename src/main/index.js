@@ -8,9 +8,6 @@ if (process.env.NODE_ENV !== 'development') {
   global.__static = require('path').join(__dirname, '/static').replace(/\\/g, '\\\\') // eslint-disable-line
 }
 
-
-require('electron-debug')({ showDevTools: true })
-
 let mainWindow;
 const winURL = process.env.NODE_ENV === 'development'
   ? 'http://localhost:9080'
@@ -26,10 +23,10 @@ function createWindow() {
     width: 1000,
   });
 
-  // mainWindow.webContents.on('crashed', () => {
-  //   mainWindow.destroy();
-  //   createWindow();
-  // });
+  mainWindow.webContents.on('crashed', () => {
+    mainWindow.destroy();
+    createWindow();
+  });
 
   mainWindow.loadURL(winURL);
 
