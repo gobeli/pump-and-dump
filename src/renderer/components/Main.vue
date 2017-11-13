@@ -3,7 +3,7 @@
   </div>
   <div class="container" style="margin-top: 1rem;" v-else>
     <execute-modal :market="selectedMarket" :strategy="strategy" :open="executeModalShown" @close-modal="executeModalShown = false"></execute-modal>
-    
+
     <el-dialog
       title="Use Strategy"
       :visible.sync="strategyModalShown"
@@ -15,9 +15,9 @@
           <div slot="header" class="clearfix">
             <h3>Market</h3>
           </div>
-          <el-autocomplete class="inline-input" 
+          <el-autocomplete class="inline-input"
             :disabled="$store.state.running"
-            @select="update($event.value)" 
+            @select="update($event.value)"
             v-model="market"
             :fetch-suggestions="findMarket" placeholder="Market" :trigger-on-focus="false"></el-autocomplete>
         </el-card>
@@ -27,9 +27,9 @@
       <el-col :span="12">
         <el-card>
           <div slot="header" class="clearfix">
-            <h3>Strategy</h3>            
-          </div> 
-          <strategy-form :strategy-model="strategy" @strategy-changed="submitStrategy"></strategy-form>        
+            <h3>Strategy</h3>
+          </div>
+          <strategy-form :strategy-model="strategy" @strategy-changed="submitStrategy"></strategy-form>
           <el-button style="float: right; margin-bottom: 20px" type="primary" v-if="!$store.state.running" @click="useStrategy">Use</el-button>
           <el-button-group style="float: right; margin-bottom: 20px" v-if="$store.state.running">
             <el-button type="danger" @click="cancel(false)">Cancel</el-button>
@@ -40,7 +40,7 @@
       <el-col :span="12">
         <el-card>
           <div slot="header" class="clearfix">
-            <h3>BTC-{{market}}</h3>                        
+            <h3>BTC-{{market}}</h3>
           </div>
           <vue-chart
               :rows="marketData.map(x => [null, x.ask, x.buy, x.sell])"
@@ -54,17 +54,17 @@
       <el-col :span="12">
         <el-card>
           <div slot="header" class="clearfix">
-            <h3>Open Orders</h3>                        
+            <h3>Open Orders</h3>
           </div>
-          <orders :orders="openOrders"></orders>        
+          <orders :orders="openOrders"></orders>
         </el-card>
       </el-col>
       <el-col :span="12">
         <el-card>
           <div slot="header" class="clearfix">
-            <h3>Order History</h3>                        
+            <h3>Order History</h3>
           </div>
-          <orders :orders="orderHistory"></orders>        
+          <orders :orders="orderHistory"></orders>
         </el-card>
       </el-col>
     </el-row>
@@ -133,14 +133,14 @@
         const strategy = JSON.parse(localStorage.getItem(`${storePrefix}STRATEGY`));
         if (strategy && strategy !== 'null') {
           this.strategy = strategy;
-        } 
+        }
         if (this.apiSecret && this.apiKey) {
           this.$bittrex.options({
             'apikey' : this.apiKey,
-            'apisecret' : this.apiSecret, 
+            'apisecret' : this.apiSecret,
           });
           this.$bittrex.getmarkets((data, err) => this.markets = handleResponse(data, err, this));
-          this.update(localStorage.getItem(`${storePrefix}CURRENCY`));            
+          this.update(localStorage.getItem(`${storePrefix}CURRENCY`));
         }
       },
 
@@ -150,11 +150,14 @@
           const date = new Date();
           const hours = date.getHours(), minutes = date.getMinutes(), seconds = date.getSeconds();
           this.marketData.push({ ask: tick.Ask, buy: this.$store.state.running ? this.$store.state.settings.buy : null, sell: this.$store.state.running ? this.$store.state.settings.sell : null  });
+          if (this.marketData.length > 100) {
+            this.marketData.splice(0, 1);
+          }
         });
       },
 
       update(market) {
-        
+
         if (!!market === true) {
           this.marketData = [];
           localStorage.setItem(`${storePrefix}CURRENCY`, market);
@@ -169,10 +172,10 @@
           return
         }
 
-        this.$bittrex.getopenorders({ market: `BTC-${this.market}` }, 
+        this.$bittrex.getopenorders({ market: `BTC-${this.market}` },
           (data, err) => this.openOrders = handleResponse(data, err, this));
 
-        this.$bittrex.getorderhistory({market: `BTC-${this.market}`}, 
+        this.$bittrex.getorderhistory({market: `BTC-${this.market}`},
           (data, err) => this.orderHistory = handleResponse(data, err, this).slice(0, 5));
       },
 

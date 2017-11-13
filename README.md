@@ -1,22 +1,14 @@
-# pump-and-dump
+# pump-and-dump [![Build status](https://ci.appveyor.com/api/projects/status/7o7kpe26ejv5d09j?svg=true)](https://ci.appveyor.com/project/gobeli/pump-and-dump) #
 
-> An electron-vue project
+A pump and dump application for cryptocurrencies using the bittrex API
 
-#### Build Setup
+Setup generated with [electron-vue](https://github.com/SimulatedGREG/electron-vue)
 
-``` bash
-# install dependencies
-npm install
+## [Releases](https://github.com/gobeli/pump-and-dump/releases) ##
 
-# serve with hot reload at localhost:9080
-npm run dev
+## Screenshots ##
+![alt text](https://raw.githubusercontent.com/gobeli/pump-and-dump/master/static/screen1.png)
 
-# build electron application for production
-npm run build
+![alt text](https://raw.githubusercontent.com/gobeli/pump-and-dump/master/static/screen2.png)
 
-
-```
-
----
-
-This project was generated with [electron-vue](https://github.com/SimulatedGREG/electron-vue)@[f5d9648](https://github.com/SimulatedGREG/electron-vue/tree/f5d9648e169a3efef53159823cc7a4c7eb7221d1) using [vue-cli](https://github.com/vuejs/vue-cli). Documentation about the original structure can be found [here](https://simulatedgreg.gitbooks.io/electron-vue/content/index.html).
+_Use at your own risk_
