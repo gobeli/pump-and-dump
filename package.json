@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "author": "Etienne Gobeli <etienne.gobeli@students.fhnw.ch>",
   "description": "An electron-vue project",
-  "license": null,
+  "license": "MIT",
   "main": "./dist/electron/main.js",
   "scripts": {
     "build": "node .electron-vue/build.js && electron-builder",

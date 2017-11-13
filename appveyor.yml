@@ -31,13 +31,3 @@ artifacts:
   - path: build\*
 
 test: off
-
-deploy:
-  release: myproduct-v$(appveyor_build_version)
-  provider: GitHub
-  artifact: /.*\.exe/            # upload all NuGet packages to release assets
-  draft: false
-  prerelease: true
-  on:
-    branch: master                 # release from master branch only
-    appveyor_repo_tag: true
