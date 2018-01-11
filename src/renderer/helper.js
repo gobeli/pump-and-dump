@@ -9,6 +9,12 @@ export function handleResponse(data, err, $this) {
   return data && data.result || null;
 }
 
+export function handleError($this) {
+  return err => {
+    $this.$message({message: err.message, type: 'error'});
+  }
+}
+
 export const storePrefix = 'pump_and_dump_';
 
 export function getApiKey() {
@@ -32,5 +38,24 @@ export function setApiSecret(secret) {
     localStorage.removeItem(`${storePrefix}APISECRET`);
   } else {
     localStorage.setItem(`${storePrefix}APISECRET`, secret);
+  }
+}
+
+export function getExchange() {
+  return localStorage.getItem(`${storePrefix}EXCHANGE`);
+}
+
+export function setExchange(exchange) {
+  if (!exchange) {
+    localStorage.removeItem(`${storePrefix}EXCHANGE`);
+  } else {
+    localStorage.setItem(`${storePrefix}EXCHANGE`, exchange);
+  }
+}
+
+export function initExchange(store) {
+  const exchange = getExchange(), key = getApiKey(), secret = getApiSecret();
+  if (exchange && key && secret) {
+    store.commit('SET_EXCHANGE', { key, secret, exchange });
   }
 }

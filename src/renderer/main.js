@@ -1,4 +1,4 @@
-import bittrex from 'node.bittrex.api';
+import ccxt from 'ccxt';
 import ElementUI from 'element-ui';
 import Vue from 'vue';
 import axios from 'axios';
@@ -29,7 +29,7 @@ Vue.component('strategy-form', StrategyForm);
 Vue.component('orders', Orders);
 Vue.component('execute-modal', ExecuteModal);
 
-Vue.prototype.$bittrex = bittrex;
+Vue.prototype.$ccxt = ccxt;
 
 // Vue.prototype.$bittrex.buylimit = (x, cb) => {
 //   console.log(x);

@@ -1,6 +1,4 @@
 <template>
-  <div id="wrapper" v-if="!apiKey || !apiSecret">
-  </div>
   <div class="container" style="margin-top: 1rem;" v-else>
     <execute-modal :market="selectedMarket" :strategy="strategy" :open="executeModalShown" @close-modal="executeModalShown = false"></execute-modal>
 
@@ -44,7 +42,7 @@
           </div>
           <vue-chart
               :rows="marketData.map(x => [null, x.ask, x.buy, x.sell])"
-              :columns="[{ type: 'string', label: '' },{ type: 'number', label: 'Ask' }, { type: 'number', label: 'Buy' }, { type: 'number', label: 'Sell' }]"
+              :columns="[{ type: 'string', label: '' },{ type: 'number', label: 'Last' }, { type: 'number', label: 'Buy' }, { type: 'number', label: 'Sell' }]"
               :options="chartOptions"
           ></vue-chart>
         </el-card>
@@ -74,13 +72,10 @@
 
 <script>
   import { handleResponse } from '../helper';
-  import { getApiKey, getApiSecret, setApiKey, setApiSecret, storePrefix } from '../helper';
+  import { getApiKey, getApiSecret, setApiKey, setApiSecret, storePrefix, initExchange, handleError } from '../helper';
 
   export default {
     data: () => ({
-      // api
-      apiKey: '',
-      apiSecret: '',
       // market
       market: '',
       markets: [],
@@ -116,8 +111,6 @@
     }),
 
     created() {
-      this.apiKey = getApiKey();
-      this.apiSecret = getApiSecret();
       this.initialize();
       this.$bus.$on('update', _ => this.update(null));
     },
@@ -130,58 +123,62 @@
       },
 
       initialize() {
+        initExchange(this.$store);
         const strategy = JSON.parse(localStorage.getItem(`${storePrefix}STRATEGY`));
         if (strategy && strategy !== 'null') {
           this.strategy = strategy;
         }
-        if (this.apiSecret && this.apiKey) {
-          this.$bittrex.options({
-            'apikey' : this.apiKey,
-            'apisecret' : this.apiSecret,
+        this.$store.state.exchange.loadMarkets().catch(handleError(this))
+          .then(m => {
+            this.markets = Object.keys(m);
           });
-          this.$bittrex.getmarkets((data, err) => this.markets = handleResponse(data, err, this));
-          this.update(localStorage.getItem(`${storePrefix}CURRENCY`));
-        }
+        // this.$bittrex.getmarkets((data, err) => this.markets = handleResponse(data, err, this));
+        this.update(localStorage.getItem(`${storePrefix}CURRENCY`));
       },
 
       getTicker() {
-        this.$bittrex.getticker({ market: `BTC-${this.selectedMarket}` }, (data, err) => {
-          const tick = handleResponse(data, err, this);
-          const date = new Date();
-          const hours = date.getHours(), minutes = date.getMinutes(), seconds = date.getSeconds();
-          this.marketData.push({ ask: tick.Ask, buy: this.$store.state.running ? this.$store.state.settings.buy : null, sell: this.$store.state.running ? this.$store.state.settings.sell : null  });
-          if (this.marketData.length > 100) {
-            this.marketData.splice(0, 1);
-          }
-        });
+        this.$store.state.exchange.fetchTicker(this.selectedMarket).catch(handleError(this))
+          .then(tick => {
+            this.marketData.push({ ask: tick.last, 
+              buy: this.$store.state.running ? this.$store.state.settings.buy : null, 
+              sell: this.$store.state.running ? this.$store.state.settings.sell : null  
+            });
+            if (this.marketData.length > 100) {
+              this.marketData.splice(0, 1);
+            }
+          });
       },
 
       update(market) {
-
         if (!!market === true) {
           this.marketData = [];
           localStorage.setItem(`${storePrefix}CURRENCY`, market);
           this.market = market;
           this.selectedMarket = market;
-          clearInterval(this.tickerInterval);
+          // clearInterval(this.tickerInterval);
           this.getTicker();
-          this.tickerInterval = setInterval(this.getTicker.bind(this), 1000);
+          // this.tickerInterval = setInterval(this.getTicker.bind(this), 1000);
         }
 
         if (!this.market) {
           return
         }
-
-        this.$bittrex.getopenorders({ market: `BTC-${this.market}` },
-          (data, err) => this.openOrders = handleResponse(data, err, this));
-
-        this.$bittrex.getorderhistory({market: `BTC-${this.market}`},
-          (data, err) => this.orderHistory = handleResponse(data, err, this).slice(0, 5));
+        if (this.$store.state.exchange.hasFetchOrders ) {
+          this.$store.state.exchange.fetchOrders(this.market).catch(handleError(this))
+            .then(x => {
+              console.log(x);
+              return x;
+            })
+            .then(orders => this.openOrders = orders);
+        } else {
+          this.$message({ type: 'error', message: 'Fetch Orders is not supportet by ' + this.$store.state.exchange.id })
+        }
+        // this.$bittrex.getorderhistory({market: `BTC-${this.market}`},
+        //   (data, err) => this.orderHistory = handleResponse(data, err, this).slice(0, 5));
       },
 
       findMarket(queryString, cb) {
-        let markets = this.markets.map(m => m.MarketCurrency);
-        markets = markets.filter(m => m.toLowerCase().indexOf(queryString.toLowerCase()) > -1);
+        const markets = this.markets.filter(m => m.toLowerCase().indexOf(queryString.toLowerCase()) > -1);
         cb([...new Set(markets)].map(m => ({ value: m })));
       },
 
