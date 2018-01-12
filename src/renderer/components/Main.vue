@@ -157,24 +157,21 @@
           this.selectedMarket = market;
           // clearInterval(this.tickerInterval);
           this.getTicker();
-          // this.tickerInterval = setInterval(this.getTicker.bind(this), 1000);
+          // this.tickerInterval = setInterval(this.getTicker.bind(this), 5000);
         }
 
         if (!this.market) {
           return
         }
-        if (this.$store.state.exchange.hasFetchOrders ) {
+        if (this.$store.state.exchange.hasFetchOrders) {
           this.$store.state.exchange.fetchOrders(this.market).catch(handleError(this))
-            .then(x => {
-              console.log(x);
-              return x;
-            })
-            .then(orders => this.openOrders = orders);
+            .then(orders => {
+              this.orderHistory = orders.filter(o => o.status === 'closed');
+              this.openOrders = orders.filter(o => o.status === 'open');
+            });
         } else {
           this.$message({ type: 'error', message: 'Fetch Orders is not supportet by ' + this.$store.state.exchange.id })
         }
-        // this.$bittrex.getorderhistory({market: `BTC-${this.market}`},
-        //   (data, err) => this.orderHistory = handleResponse(data, err, this).slice(0, 5));
       },
 
       findMarket(queryString, cb) {

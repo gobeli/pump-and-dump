@@ -55,8 +55,8 @@
         if (!this.market || this.market.length < 3) { 
           return;
         }
-        this.$bittrex.getmarketsummary({market: `BTC-${this.market}`}, 
-          (data, err) => this.marketSummary = handleResponse(data, err, this)[0] || {});
+        // this.$bittrex.getmarketsummary({market: `BTC-${this.market}`}, 
+        //   (data, err) => this.marketSummary = handleResponse(data, err, this)[0] || {});
       },
       buy(cb) {
         this.$bittrex.buylimit({ market: `BTC-${this.market}`, quantity: this.quantity, rate: this.bid }, (data, err) => { 

@@ -1,15 +1,20 @@
 <template>
   <div>
     <div class="messages">
-      <el-row v-for="order in orders" class="message" :gutter="10" :key="order.OrderUuid">
+      <el-row class="message" :gutter="10">
+        <el-col :span="8"><b>Type</b></el-col>
+        <el-col :span="8"><b>Amount</b></el-col>
+        <el-col :span="8"><b>Rate</b></el-col>
+      </el-row>
+      <el-row v-for="order in orders.slice(0,5)" class="message" :gutter="10" :key="order.id">
         <el-col :span="8">
-          {{order.OrderType.split('_')[1]}}
+          {{order.type}}
         </el-col>
         <el-col :span="8">
-          {{order.Exchange}}
+          {{order.amount}}
         </el-col>
         <el-col :span="8">
-          <b>{{order.Quantity}}</b>
+          {{order.average}}
         </el-col>
       </el-row>
     </div>

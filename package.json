@@ -14,11 +14,12 @@
     "pack": "npm run pack:main && npm run pack:renderer",
     "pack:main": "cross-env NODE_ENV=production webpack --progress --colors --config .electron-vue/webpack.main.config.js",
     "pack:renderer": "cross-env NODE_ENV=production webpack --progress --colors --config .electron-vue/webpack.renderer.config.js",
-    "postinstall": ""
+    "postinstall": "",
+    "release": "build"
   },
   "build": {
     "productName": "pump-and-dump",
-    "appId": "org.simulatedgreg.electron-vue",
+    "appId": "org.gobeli.pump-and-dump",
     "directories": {
       "output": "build"
     },
