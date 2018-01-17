@@ -9,7 +9,7 @@
           :value="e">
         </el-option>
       </el-select>
-    </el-form-item> 
+    </el-form-item>
     <el-form-item label="API Key">
       <el-input style="width: 100%" v-model="apiModel.key"></el-input>
     </el-form-item>
@@ -36,7 +36,7 @@
         setApiKey(this.apiModel.key);
         setApiSecret(this.apiModel.secret);
         setExchange(this.apiModel.exchange);
-        this.$router.go('/app');
+        this.$router.push('/app');
       },
     }
   }

@@ -1,6 +1,6 @@
 <template>
   <div class="container" style="margin-top: 1rem;" v-else>
-    <execute-modal :market="selectedMarket" :strategy="strategy" :open="executeModalShown" @close-modal="executeModalShown = false"></execute-modal>
+    <execute-modal :lastPrice="lastPrice" :market="selectedMarket" :strategy="strategy" :open="executeModalShown" @close-modal="executeModalShown = false"></execute-modal>
 
     <el-dialog
       title="Use Strategy"
@@ -38,10 +38,10 @@
       <el-col :span="12">
         <el-card>
           <div slot="header" class="clearfix">
-            <h3>BTC-{{market}}</h3>
+            <h3>{{market}}</h3>
           </div>
           <vue-chart
-              :rows="marketData.map(x => [null, x.ask, x.buy, x.sell])"
+              :rows="marketData.map(x => [null, x.last, x.buy, x.sell])"
               :columns="[{ type: 'string', label: '' },{ type: 'number', label: 'Last' }, { type: 'number', label: 'Buy' }, { type: 'number', label: 'Sell' }]"
               :options="chartOptions"
           ></vue-chart>
@@ -92,6 +92,7 @@
       marketData: [],
       chartStrategy: this.strategies ? this.strategies[0] : {},
       tickerInterval: null,
+      lastPrice: null,
       chartOptions: {
         annotations: {
           duration: 1000,
@@ -119,7 +120,7 @@
       logout() {
         setApiKey(null);
         setApiSecret(null);
-        this.$router.go('/login');
+        this.$router.push('/login');
       },
 
       initialize() {
@@ -132,16 +133,16 @@
           .then(m => {
             this.markets = Object.keys(m);
           });
-        // this.$bittrex.getmarkets((data, err) => this.markets = handleResponse(data, err, this));
         this.update(localStorage.getItem(`${storePrefix}CURRENCY`));
       },
 
       getTicker() {
         this.$store.state.exchange.fetchTicker(this.selectedMarket).catch(handleError(this))
           .then(tick => {
-            this.marketData.push({ ask: tick.last, 
-              buy: this.$store.state.running ? this.$store.state.settings.buy : null, 
-              sell: this.$store.state.running ? this.$store.state.settings.sell : null  
+            this.lastPrice = tick;
+            this.marketData.push({last: tick.last,
+              buy: this.$store.state.running ? this.$store.state.settings.buy : null,
+              sell: this.$store.state.running ? this.$store.state.settings.sell : null
             });
             if (this.marketData.length > 100) {
               this.marketData.splice(0, 1);
@@ -155,9 +156,9 @@
           localStorage.setItem(`${storePrefix}CURRENCY`, market);
           this.market = market;
           this.selectedMarket = market;
-          // clearInterval(this.tickerInterval);
+          clearInterval(this.tickerInterval);
           this.getTicker();
-          // this.tickerInterval = setInterval(this.getTicker.bind(this), 5000);
+          this.tickerInterval = setInterval(this.getTicker.bind(this), 5000);
         }
 
         if (!this.market) {
@@ -167,6 +168,7 @@
           this.$store.state.exchange.fetchOrders(this.market).catch(handleError(this))
             .then(orders => {
               this.orderHistory = orders.filter(o => o.status === 'closed');
+              console.log(orders)
               this.openOrders = orders.filter(o => o.status === 'open');
             });
         } else {
@@ -194,20 +196,34 @@
           this.$message({ message: 'Strategy is invalid', type: 'error' });
         }
       },
+      cancelOrder(id) {
+        this.$store.state.exchange.fetchOrder(this.$store.state.settings.buyOrder.id).then(o => {
+          if (o.status === 'open') {
+            this.$store.state.exchange.cancelOrder(id).then(() =>
+              this.$message({
+                message: 'Order cancelled',
+                type: 'success',
+              })
+            )
+          }
+        })
+
+      },
 
       cancel(sell) {
         this.$store.commit('SET_RUNNING', { running: false });
+        this.cancelOrder(this.$store.state.settings.buyOrder.id);
+        this.cancelOrder(this.$store.state.settings.sellOrder.id);
         if (sell) {
-          const rate = this.marketData[this.marketData.length - 1].ask;
-          this.$bittrex.selllimit({ market: `BTC-${this.market}`, quantity: this.$store.state.settings.quantity, rate }, (data, err) => {
-            const res = handleResponse(data, err, this);
-            if (res.uuid) {
+          const rate = this.marketData[this.marketData.length - 1].last;
+          this.$store.state.exchange.createLimitSellOrder(this.selectedMarket, this.$store.state.settings.quantity, rate)
+            .catch(handleError(this))
+            .then(res => {
               this.$message({
-                message: 'Sell-Order successfull',
+                message: 'Sell-Order placed successfully',
                 type: 'success',
               });
-            }
-          })
+            })
         }
       }
     },
