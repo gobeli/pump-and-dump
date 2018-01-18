@@ -1,5 +1,5 @@
 <template>
-  <div class="container" style="margin-top: 1rem;" v-else>
+  <div class="container" style="margin-top: 1rem;">
     <execute-modal :lastPrice="lastPrice" :market="selectedMarket" :strategy="strategy" :open="executeModalShown" @close-modal="executeModalShown = false"></execute-modal>
 
     <el-dialog
@@ -8,16 +8,24 @@
       :before-close="_ => strategyModalShown = false">
     </el-dialog>
     <el-row :gutter="20">
-      <el-col>
+      <el-col :span="12">
         <el-card class="box-card">
           <div slot="header" class="clearfix">
             <h3>Market</h3>
           </div>
-          <el-autocomplete class="inline-input"
+          <el-autocomplete style="width: 100%" class="inline-input"
             :disabled="$store.state.running"
-            @select="update($event.value)"
+            @select="updateGui($event.value)"
             v-model="market"
             :fetch-suggestions="findMarket" placeholder="Market" :trigger-on-focus="false"></el-autocomplete>
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card class="box-card">
+          <div slot="header">
+            <h3>Polling Timeout (MS)</h3>
+          </div>
+          <el-input-number style="width: 100%" v-model="pollTimeout" @change="updateGui()"></el-input-number>
         </el-card>
       </el-col>
     </el-row>
@@ -76,6 +84,8 @@
 
   export default {
     data: () => ({
+      // polling
+      pollTimeout: 5000,
       // market
       market: '',
       markets: [],
@@ -113,7 +123,7 @@
 
     created() {
       this.initialize();
-      this.$bus.$on('update', _ => this.update(null));
+      this.$bus.$on('update', _ => this.updateGui(null));
     },
 
     methods: {
@@ -133,7 +143,7 @@
           .then(m => {
             this.markets = Object.keys(m);
           });
-        this.update(localStorage.getItem(`${storePrefix}CURRENCY`));
+        this.updateGui(localStorage.getItem(`${storePrefix}CURRENCY`));
       },
 
       getTicker() {
@@ -150,7 +160,7 @@
           });
       },
 
-      update(market) {
+      updateGui(market) {
         if (!!market === true) {
           this.marketData = [];
           localStorage.setItem(`${storePrefix}CURRENCY`, market);
@@ -158,7 +168,7 @@
           this.selectedMarket = market;
           clearInterval(this.tickerInterval);
           this.getTicker();
-          this.tickerInterval = setInterval(this.getTicker.bind(this), 5000);
+          this.tickerInterval = setInterval(this.getTicker.bind(this), this.pollTimeout);
         }
 
         if (!this.market) {
