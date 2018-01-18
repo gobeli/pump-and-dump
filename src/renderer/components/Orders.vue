@@ -2,19 +2,23 @@
   <div>
     <div class="messages">
       <el-row class="message" :gutter="10">
-        <el-col :span="8"><b>Type</b></el-col>
-        <el-col :span="8"><b>Amount</b></el-col>
-        <el-col :span="8"><b>Rate</b></el-col>
+        <el-col :span="6"><b>Type</b></el-col>
+        <el-col :span="6"><b>Amount</b></el-col>
+        <el-col :span="6"><b>Rate</b></el-col>
+        <el-col :span="6"><b>Status</b></el-col>
       </el-row>
       <el-row v-for="order in orders.slice(0,5)" class="message" :gutter="10" :key="order.id">
-        <el-col :span="8">
-          {{order.type}}
+        <el-col :span="6">
+          {{order.side}}
         </el-col>
-        <el-col :span="8">
+        <el-col :span="6">
           {{order.amount}}
         </el-col>
-        <el-col :span="8">
-          {{order.average}}
+        <el-col :span="6">
+          {{order.price}}
+        </el-col>
+        <el-col :span="6">
+          {{order.status}}
         </el-col>
       </el-row>
     </div>
@@ -22,7 +26,7 @@
 </template>
 <script>
   export default {
-    name: 'orders',
+    name: 'pnd-orders',
     props: ['title', 'orders']
   }
 </script>

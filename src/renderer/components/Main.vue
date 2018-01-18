@@ -1,6 +1,6 @@
 <template>
   <div class="container" style="margin-top: 1rem;">
-    <execute-modal :lastPrice="lastPrice" :market="selectedMarket" :strategy="strategy" :open="executeModalShown" @close-modal="executeModalShown = false"></execute-modal>
+    <pnd-execute-modal :market="selectedMarket" :strategy="strategy" :open="executeModalShown" @close-modal="executeModalShown = false"></pnd-execute-modal>
 
     <el-dialog
       title="Use Strategy"
@@ -25,7 +25,7 @@
           <div slot="header">
             <h3>Polling Timeout (MS)</h3>
           </div>
-          <el-input-number style="width: 100%" v-model="pollTimeout" @change="updateGui()"></el-input-number>
+          <el-input-number style="width: 100%" v-model="pollingTimeout" @change="updateGui()"></el-input-number>
         </el-card>
       </el-col>
     </el-row>
@@ -35,7 +35,7 @@
           <div slot="header" class="clearfix">
             <h3>Strategy</h3>
           </div>
-          <strategy-form :strategy-model="strategy" @strategy-changed="submitStrategy"></strategy-form>
+          <pnd-strategy-form :strategy-model="strategy"></pnd-strategy-form>
           <el-button style="float: right; margin-bottom: 20px" type="primary" v-if="!$store.state.running" @click="useStrategy">Use</el-button>
           <el-button-group style="float: right; margin-bottom: 20px" v-if="$store.state.running">
             <el-button type="danger" @click="cancel(false)">Cancel</el-button>
@@ -48,29 +48,17 @@
           <div slot="header" class="clearfix">
             <h3>{{market}}</h3>
           </div>
-          <vue-chart
-              :rows="marketData.map(x => [null, x.last, x.buy, x.sell])"
-              :columns="[{ type: 'string', label: '' },{ type: 'number', label: 'Last' }, { type: 'number', label: 'Buy' }, { type: 'number', label: 'Sell' }]"
-              :options="chartOptions"
-          ></vue-chart>
+          <pnd-chart :pollingTimeout="pollingTimeout" :strategy="running ? strategy : null" :market="selectedMarket"></pnd-chart>
         </el-card>
       </el-col>
     </el-row>
     <el-row :gutter="20">
-      <el-col :span="12">
+      <el-col>
         <el-card>
           <div slot="header" class="clearfix">
-            <h3>Open Orders</h3>
+            <h3>Orders</h3>
           </div>
-          <orders :orders="openOrders"></orders>
-        </el-card>
-      </el-col>
-      <el-col :span="12">
-        <el-card>
-          <div slot="header" class="clearfix">
-            <h3>Order History</h3>
-          </div>
-          <orders :orders="orderHistory"></orders>
+          <pnd-orders :orders="orders"></pnd-orders>
         </el-card>
       </el-col>
     </el-row>
@@ -79,13 +67,14 @@
 </template>
 
 <script>
-  import { handleResponse } from '../helper';
-  import { getApiKey, getApiSecret, setApiKey, setApiSecret, storePrefix, initExchange, handleError } from '../helper';
+  import { mapGetters } from 'vuex';
+
+  import {setApiKey, setApiSecret, storePrefix, initExchange, handleError } from '../helper';
 
   export default {
     data: () => ({
       // polling
-      pollTimeout: 5000,
+      pollingTimeout: 5000,
       // market
       market: '',
       markets: [],
@@ -98,28 +87,16 @@
       },
       strategyModalShown: false,
       running: false,
-      // chart
-      marketData: [],
-      chartStrategy: this.strategies ? this.strategies[0] : {},
-      tickerInterval: null,
-      lastPrice: null,
-      chartOptions: {
-        annotations: {
-          duration: 1000,
-          easing: 'out',
-        },
-        hAxis: {
-          title: 'time',
-        },
-        vAxis: {
-          title: 'price',
-        },
-      },
       // orders
       executeModalShown: false,
-      openOrders: [],
-      orderHistory: []
+      orders: []
     }),
+
+    computed: {
+      ...mapGetters([
+        'lastPrice',
+      ])
+    },
 
     created() {
       this.initialize();
@@ -146,41 +123,25 @@
         this.updateGui(localStorage.getItem(`${storePrefix}CURRENCY`));
       },
 
-      getTicker() {
-        this.$store.state.exchange.fetchTicker(this.selectedMarket).catch(handleError(this))
-          .then(tick => {
-            this.lastPrice = tick;
-            this.marketData.push({last: tick.last,
-              buy: this.$store.state.running ? this.$store.state.settings.buy : null,
-              sell: this.$store.state.running ? this.$store.state.settings.sell : null
-            });
-            if (this.marketData.length > 100) {
-              this.marketData.splice(0, 1);
-            }
-          });
-      },
-
       updateGui(market) {
         if (!!market === true) {
-          this.marketData = [];
+          this.$store.commit('CLEAR_MARKETDATA');
           localStorage.setItem(`${storePrefix}CURRENCY`, market);
           this.market = market;
           this.selectedMarket = market;
-          clearInterval(this.tickerInterval);
-          this.getTicker();
-          this.tickerInterval = setInterval(this.getTicker.bind(this), this.pollTimeout);
         }
 
-        if (!this.market) {
-          return
+        if (this.market) {
+          this.fetchOrders();
         }
+      },
+
+      fetchOrders() {
         if (this.$store.state.exchange.hasFetchOrders) {
-          this.$store.state.exchange.fetchOrders(this.market).catch(handleError(this))
+          this.$store.state.exchange.fetchOrders(this.market)
             .then(orders => {
-              this.orderHistory = orders.filter(o => o.status === 'closed');
-              console.log(orders)
-              this.openOrders = orders.filter(o => o.status === 'open');
-            });
+              this.orders = orders;
+            }).catch(handleError(this));
         } else {
           this.$message({ type: 'error', message: 'Fetch Orders is not supportet by ' + this.$store.state.exchange.id })
         }
@@ -191,21 +152,14 @@
         cb([...new Set(markets)].map(m => ({ value: m })));
       },
 
-      submitStrategy(value) {
-        localStorage.setItem(`${storePrefix}STRATEGY`, JSON.stringify(value));
-      },
-
-      deleteStrategy(strategy) {
-        this.strategies = this.strategies.filter(s => s.uid !== strategy.uid)
-      },
-
       useStrategy() {
-        if (this.strategy && this.strategy.volume > 0 && this.strategy.buyAt > 0 && this.strategy.sellAt > 0) {
+        if (this.strategy && this.strategy.volume > 0 && this.strategy.buyAt >= 0 && this.strategy.sellAt > 0) {
           this.executeModalShown = true;
         } else {
           this.$message({ message: 'Strategy is invalid', type: 'error' });
         }
       },
+
       cancelOrder(id) {
         this.$store.state.exchange.fetchOrder(this.$store.state.settings.buyOrder.id).then(o => {
           if (o.status === 'open') {
@@ -214,10 +168,9 @@
                 message: 'Order cancelled',
                 type: 'success',
               })
-            )
+            ).then(() => this.$bus.$emit('update'))
           }
-        })
-
+        }).catch(handleError(this))
       },
 
       cancel(sell) {
@@ -225,15 +178,14 @@
         this.cancelOrder(this.$store.state.settings.buyOrder.id);
         this.cancelOrder(this.$store.state.settings.sellOrder.id);
         if (sell) {
-          const rate = this.marketData[this.marketData.length - 1].last;
-          this.$store.state.exchange.createLimitSellOrder(this.selectedMarket, this.$store.state.settings.quantity, rate)
+          this.$store.state.exchange.createLimitSellOrder(this.selectedMarket, this.$store.state.settings.quantity, this.lastPrice)
             .catch(handleError(this))
-            .then(res => {
+            .then(res =>
               this.$message({
                 message: 'Sell-Order placed successfully',
                 type: 'success',
-              });
-            })
+              })
+            ).then(() => this.$bus.$emit('update'));
         }
       }
     },

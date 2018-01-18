@@ -8,10 +8,10 @@ import Store from './store';
 import App from './App';
 import router from './router';
 
-import StrategyTable from './components/StrategyTable.vue';
 import StrategyForm from './components/StrategyForm.vue';
 import Orders from './components/Orders.vue';
 import ExecuteModal from './components/ExecuteModal.vue';
+import Chart from './components/Chart.vue';
 
 import 'element-ui/lib/theme-chalk/index.css';
 
@@ -24,21 +24,12 @@ Vue.config.productionTip = false;
 Vue.use(ElementUI);
 Vue.use(VueCharts);
 
-Vue.component('strategy-table', StrategyTable);
-Vue.component('strategy-form', StrategyForm);
-Vue.component('orders', Orders);
-Vue.component('execute-modal', ExecuteModal);
+Vue.component('pnd-strategy-form', StrategyForm);
+Vue.component('pnd-orders', Orders);
+Vue.component('pnd-execute-modal', ExecuteModal);
+Vue.component('pnd-chart', Chart);
 
 Vue.prototype.$ccxt = ccxt;
-
-// Vue.prototype.$bittrex.buylimit = (x, cb) => {
-//   console.log(x);
-//   cb({ result: { uuid: 1 } }, null);
-// };
-// Vue.prototype.$bittrex.selllimit = (x, cb) => {
-//   console.log(x);
-//   cb({ result: { uuid: 1 } }, null);
-// };
 
 /* eslint-disable no-new */
 new Vue({

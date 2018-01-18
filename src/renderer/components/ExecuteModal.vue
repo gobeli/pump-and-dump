@@ -4,7 +4,7 @@
     :visible.sync="open"
     size="tiny"
     :before-close="() => $emit('close-modal')">
-    <h3>Trade {{market}}</h3>
+    <h3>Trade {{market}} ({{lastPrice}})</h3>
     <p>Buy: <strong>{{quantity}} {{market}}</strong> at <strong>{{bid}}</strong></p>
     <p>Sell at <strong>{{ask}}</strong></p>
     <el-button type="primary" @click="submit()">Ok</el-button>
@@ -12,11 +12,13 @@
 
 </template>
 <script>
+  import { mapGetters } from 'vuex';
+
   import { handleError } from '../helper';
 
   export default {
-    name: 'execute-modal',
-    props: ['open', 'strategy', 'market', 'lastPrice'],
+    name: 'pnd-execute-modal',
+    props: ['open', 'strategy', 'market'],
     watch: {
       open() {
         this.update();
@@ -29,6 +31,9 @@
       }
     },
     computed: {
+      ...mapGetters([
+        'lastPrice',
+      ]),
       rateBuy() {
         return 1 + (this.strategy.buyAt / 100);
       },
@@ -36,10 +41,10 @@
         return 1 + (this.strategy.sellAt / 100);
       },
       bid() {
-        return this.lastPrice && this.lastPrice.last * this.rateBuy;
+        return this.lastPrice && this.lastPrice * this.rateBuy;
       },
       ask() {
-        return this.lastPrice &&  this.lastPrice.last * this.rateSell;
+        return this.lastPrice &&  this.lastPrice * this.rateSell;
       },
       quantity() {
         if (this.lastPrice && this.strategy) {
@@ -71,7 +76,6 @@
             });
             this.$bus.$emit('update');
             this.$emit('close-modal');
-            console.log(buyOrder, s);
             this.$store.commit('SET_RUNNING', { running: true, settings: { buy: this.bid, sell: this.ask, quantity: this.quantity, buyOrder, sellOrder: s } });
           })
           .catch(handleError(this));
