@@ -1,4 +1,5 @@
-# pump-and-dump [![Build status](https://ci.appveyor.com/api/projects/status/7o7kpe26ejv5d09j?svg=true)](https://ci.appveyor.com/project/gobeli/pump-and-dump) #
+# pump-and-dump #
+[![Build status](https://ci.appveyor.com/api/projects/status/7o7kpe26ejv5d09j?svg=true)](https://ci.appveyor.com/project/gobeli/pump-and-dump)[![Build Status](https://travis-ci.org/gobeli/pump-and-dump.svg?branch=master)](https://travis-ci.org/gobeli/pump-and-dump)
 
 A pump and dump application for cryptocurrencies using [ccxt](https://github.com/ccxt/ccxt)
 
