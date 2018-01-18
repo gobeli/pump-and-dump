@@ -14,11 +14,12 @@
     "pack": "npm run pack:main && npm run pack:renderer",
     "pack:main": "cross-env NODE_ENV=production webpack --progress --colors --config .electron-vue/webpack.main.config.js",
     "pack:renderer": "cross-env NODE_ENV=production webpack --progress --colors --config .electron-vue/webpack.renderer.config.js",
-    "postinstall": ""
+    "postinstall": "",
+    "release": "build"
   },
   "build": {
     "productName": "pump-and-dump",
-    "appId": "org.simulatedgreg.electron-vue",
+    "appId": "org.gobeli.pump-and-dump",
     "directories": {
       "output": "build"
     },
@@ -53,6 +54,7 @@
   "dependencies": {
     "ajv": "^5.3.0",
     "axios": "^0.16.2",
+    "ccxt": "^1.10.643",
     "chart.js": "^2.7.1",
     "element-ui": "^2.0.4",
     "node-sass": "^4.6.1",

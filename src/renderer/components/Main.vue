@@ -1,8 +1,6 @@
 <template>
-  <div id="wrapper" v-if="!apiKey || !apiSecret">
-  </div>
-  <div class="container" style="margin-top: 1rem;" v-else>
-    <execute-modal :market="selectedMarket" :strategy="strategy" :open="executeModalShown" @close-modal="executeModalShown = false"></execute-modal>
+  <div class="container" style="margin-top: 1rem;">
+    <pnd-execute-modal :market="selectedMarket" :strategy="strategy" :open="executeModalShown" @close-modal="executeModalShown = false"></pnd-execute-modal>
 
     <el-dialog
       title="Use Strategy"
@@ -10,16 +8,24 @@
       :before-close="_ => strategyModalShown = false">
     </el-dialog>
     <el-row :gutter="20">
-      <el-col>
+      <el-col :span="12">
         <el-card class="box-card">
           <div slot="header" class="clearfix">
             <h3>Market</h3>
           </div>
-          <el-autocomplete class="inline-input"
+          <el-autocomplete style="width: 100%" class="inline-input"
             :disabled="$store.state.running"
-            @select="update($event.value)"
+            @select="updateGui($event.value)"
             v-model="market"
             :fetch-suggestions="findMarket" placeholder="Market" :trigger-on-focus="false"></el-autocomplete>
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card class="box-card">
+          <div slot="header">
+            <h3>Polling Timeout (MS)</h3>
+          </div>
+          <el-input-number style="width: 100%" v-model="pollingTimeout" @change="updateGui()"></el-input-number>
         </el-card>
       </el-col>
     </el-row>
@@ -29,7 +35,7 @@
           <div slot="header" class="clearfix">
             <h3>Strategy</h3>
           </div>
-          <strategy-form :strategy-model="strategy" @strategy-changed="submitStrategy"></strategy-form>
+          <pnd-strategy-form :strategy-model="strategy"></pnd-strategy-form>
           <el-button style="float: right; margin-bottom: 20px" type="primary" v-if="!$store.state.running" @click="useStrategy">Use</el-button>
           <el-button-group style="float: right; margin-bottom: 20px" v-if="$store.state.running">
             <el-button type="danger" @click="cancel(false)">Cancel</el-button>
@@ -40,31 +46,19 @@
       <el-col :span="12">
         <el-card>
           <div slot="header" class="clearfix">
-            <h3>BTC-{{market}}</h3>
+            <h3>{{market}}</h3>
           </div>
-          <vue-chart
-              :rows="marketData.map(x => [null, x.ask, x.buy, x.sell])"
-              :columns="[{ type: 'string', label: '' },{ type: 'number', label: 'Ask' }, { type: 'number', label: 'Buy' }, { type: 'number', label: 'Sell' }]"
-              :options="chartOptions"
-          ></vue-chart>
+          <pnd-chart :pollingTimeout="pollingTimeout" :strategy="running ? strategy : null" :market="selectedMarket"></pnd-chart>
         </el-card>
       </el-col>
     </el-row>
     <el-row :gutter="20">
-      <el-col :span="12">
+      <el-col>
         <el-card>
           <div slot="header" class="clearfix">
-            <h3>Open Orders</h3>
+            <h3>Orders</h3>
           </div>
-          <orders :orders="openOrders"></orders>
-        </el-card>
-      </el-col>
-      <el-col :span="12">
-        <el-card>
-          <div slot="header" class="clearfix">
-            <h3>Order History</h3>
-          </div>
-          <orders :orders="orderHistory"></orders>
+          <pnd-orders :orders="orders"></pnd-orders>
         </el-card>
       </el-col>
     </el-row>
@@ -73,14 +67,14 @@
 </template>
 
 <script>
-  import { handleResponse } from '../helper';
-  import { getApiKey, getApiSecret, setApiKey, setApiSecret, storePrefix } from '../helper';
+  import { mapGetters } from 'vuex';
+
+  import {setApiKey, setApiSecret, storePrefix, initExchange, handleError } from '../helper';
 
   export default {
     data: () => ({
-      // api
-      apiKey: '',
-      apiSecret: '',
+      // polling
+      pollingTimeout: 5000,
       // market
       market: '',
       markets: [],
@@ -93,127 +87,105 @@
       },
       strategyModalShown: false,
       running: false,
-      // chart
-      marketData: [],
-      chartStrategy: this.strategies ? this.strategies[0] : {},
-      tickerInterval: null,
-      chartOptions: {
-        annotations: {
-          duration: 1000,
-          easing: 'out',
-        },
-        hAxis: {
-          title: 'time',
-        },
-        vAxis: {
-          title: 'price',
-        },
-      },
       // orders
       executeModalShown: false,
-      openOrders: [],
-      orderHistory: []
+      orders: []
     }),
 
+    computed: {
+      ...mapGetters([
+        'lastPrice',
+      ])
+    },
+
     created() {
-      this.apiKey = getApiKey();
-      this.apiSecret = getApiSecret();
       this.initialize();
-      this.$bus.$on('update', _ => this.update(null));
+      this.$bus.$on('update', _ => this.updateGui(null));
     },
 
     methods: {
       logout() {
         setApiKey(null);
         setApiSecret(null);
-        this.$router.go('/login');
+        this.$router.push('/login');
       },
 
       initialize() {
+        initExchange(this.$store);
         const strategy = JSON.parse(localStorage.getItem(`${storePrefix}STRATEGY`));
         if (strategy && strategy !== 'null') {
           this.strategy = strategy;
         }
-        if (this.apiSecret && this.apiKey) {
-          this.$bittrex.options({
-            'apikey' : this.apiKey,
-            'apisecret' : this.apiSecret,
+        this.$store.state.exchange.loadMarkets().catch(handleError(this))
+          .then(m => {
+            this.markets = Object.keys(m);
           });
-          this.$bittrex.getmarkets((data, err) => this.markets = handleResponse(data, err, this));
-          this.update(localStorage.getItem(`${storePrefix}CURRENCY`));
-        }
+        this.updateGui(localStorage.getItem(`${storePrefix}CURRENCY`));
       },
 
-      getTicker() {
-        this.$bittrex.getticker({ market: `BTC-${this.selectedMarket}` }, (data, err) => {
-          const tick = handleResponse(data, err, this);
-          const date = new Date();
-          const hours = date.getHours(), minutes = date.getMinutes(), seconds = date.getSeconds();
-          this.marketData.push({ ask: tick.Ask, buy: this.$store.state.running ? this.$store.state.settings.buy : null, sell: this.$store.state.running ? this.$store.state.settings.sell : null  });
-          if (this.marketData.length > 100) {
-            this.marketData.splice(0, 1);
-          }
-        });
-      },
-
-      update(market) {
-
+      updateGui(market) {
         if (!!market === true) {
-          this.marketData = [];
+          this.$store.commit('CLEAR_MARKETDATA');
           localStorage.setItem(`${storePrefix}CURRENCY`, market);
           this.market = market;
           this.selectedMarket = market;
-          clearInterval(this.tickerInterval);
-          this.getTicker();
-          this.tickerInterval = setInterval(this.getTicker.bind(this), 1000);
         }
 
-        if (!this.market) {
-          return
+        if (this.market) {
+          this.fetchOrders();
         }
+      },
 
-        this.$bittrex.getopenorders({ market: `BTC-${this.market}` },
-          (data, err) => this.openOrders = handleResponse(data, err, this));
-
-        this.$bittrex.getorderhistory({market: `BTC-${this.market}`},
-          (data, err) => this.orderHistory = handleResponse(data, err, this).slice(0, 5));
+      fetchOrders() {
+        if (this.$store.state.exchange.hasFetchOrders) {
+          this.$store.state.exchange.fetchOrders(this.market)
+            .then(orders => {
+              this.orders = orders;
+            }).catch(handleError(this));
+        } else {
+          this.$message({ type: 'error', message: 'Fetch Orders is not supportet by ' + this.$store.state.exchange.id })
+        }
       },
 
       findMarket(queryString, cb) {
-        let markets = this.markets.map(m => m.MarketCurrency);
-        markets = markets.filter(m => m.toLowerCase().indexOf(queryString.toLowerCase()) > -1);
+        const markets = this.markets.filter(m => m.toLowerCase().indexOf(queryString.toLowerCase()) > -1);
         cb([...new Set(markets)].map(m => ({ value: m })));
       },
 
-      submitStrategy(value) {
-        localStorage.setItem(`${storePrefix}STRATEGY`, JSON.stringify(value));
-      },
-
-      deleteStrategy(strategy) {
-        this.strategies = this.strategies.filter(s => s.uid !== strategy.uid)
-      },
-
       useStrategy() {
-        if (this.strategy && this.strategy.volume > 0 && this.strategy.buyAt > 0 && this.strategy.sellAt > 0) {
+        if (this.strategy && this.strategy.volume > 0 && this.strategy.buyAt >= 0 && this.strategy.sellAt > 0) {
           this.executeModalShown = true;
         } else {
           this.$message({ message: 'Strategy is invalid', type: 'error' });
         }
       },
 
+      cancelOrder(id) {
+        this.$store.state.exchange.fetchOrder(this.$store.state.settings.buyOrder.id).then(o => {
+          if (o.status === 'open') {
+            this.$store.state.exchange.cancelOrder(id).then(() =>
+              this.$message({
+                message: 'Order cancelled',
+                type: 'success',
+              })
+            ).then(() => this.$bus.$emit('update'))
+          }
+        }).catch(handleError(this))
+      },
+
       cancel(sell) {
         this.$store.commit('SET_RUNNING', { running: false });
+        this.cancelOrder(this.$store.state.settings.buyOrder.id);
+        this.cancelOrder(this.$store.state.settings.sellOrder.id);
         if (sell) {
-          const rate = this.marketData[this.marketData.length - 1].ask;
-          this.$bittrex.selllimit({ market: `BTC-${this.market}`, quantity: this.$store.state.settings.quantity, rate }, (data, err) => {
-            const res = handleResponse(data, err, this);
-            if (res.uuid) {
+          this.$store.state.exchange.createLimitSellOrder(this.selectedMarket, this.$store.state.settings.quantity, this.lastPrice)
+            .catch(handleError(this))
+            .then(res =>
               this.$message({
-                message: 'Sell-Order successfull',
+                message: 'Sell-Order placed successfully',
                 type: 'success',
-              });
-            }
-          })
+              })
+            ).then(() => this.$bus.$emit('update'));
         }
       }
     },

@@ -12,13 +12,15 @@
   </el-form>
 </template>
 <script>
+  import { storePrefix } from '../helper';
+
   export default {
-    name: 'strategy-form',
+    name: 'pnd-strategy-form',
     props: ['strategyModel'],
     watch: {
       strategyModel: {
         handler(newVal) {
-          this.$emit('strategy-changed', newVal)
+          localStorage.setItem(`${storePrefix}STRATEGY`, JSON.stringify(newVal));
         },
         deep: true
       }
