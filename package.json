@@ -1,6 +1,6 @@
 {
   "name": "pump-and-dump",
-  "version": "0.2.0",
+  "version": "0.3.0-alpha1",
   "author": "Etienne Gobeli <etienne.gobeli@students.fhnw.ch>",
   "description": "An electron-vue project",
   "license": "MIT",
