@@ -42,6 +42,9 @@
         this.updateTicker();
       },
       updateTicker() {
+        if (!this.market) {
+          return;
+        }
         this.$store.state.exchange.fetchTicker(this.market).catch(handleError(this))
           .then(tick =>
             this.$store.commit('ADD_MARKETDATA', {last: tick.last,

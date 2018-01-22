@@ -1,6 +1,6 @@
 <template>
   <el-form label-position="top" label-width="100px" :model="strategyModel">
-    <el-form-item label="Volume BTC">
+    <el-form-item label="Volume">
       <el-input-number style="width: 100%" v-model="strategyModel.volume"></el-input-number>
     </el-form-item>
     <el-form-item label="Buy at %">

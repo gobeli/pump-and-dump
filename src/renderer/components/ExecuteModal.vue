@@ -41,16 +41,16 @@
         return 1 + (this.strategy.sellAt / 100);
       },
       bid() {
-        return this.lastPrice && this.lastPrice * this.rateBuy;
+        return this.lastPrice && (this.lastPrice * this.rateBuy).toFixed(8);
       },
       ask() {
-        return this.lastPrice &&  this.lastPrice * this.rateSell;
+        return this.lastPrice &&  (this.lastPrice * this.rateSell).toFixed(8);
       },
       quantity() {
         if (this.lastPrice && this.strategy) {
-          return this.strategy.volume / this.bid;
+          return (this.strategy.volume / this.bid).toFixed(8);
         }
-      },
+      }
     },
     methods: {
       update() {
