@@ -1,7 +1,7 @@
 <template>
   <el-form label-position="top" label-width="100px" :model="strategyModel">
     <el-form-item label="Volume">
-      <el-input-number style="width: 100%" v-model="strategyModel.volume"></el-input-number>
+      <el-input-number :step="0.01" style="width: 100%" v-model="strategyModel.volume"></el-input-number>
     </el-form-item>
     <el-form-item label="Buy at %">
       <el-input-number style="width: 100%" v-model="strategyModel.buyAt"></el-input-number>
