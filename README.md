@@ -13,9 +13,9 @@ Setup generated with [electron-vue](https://github.com/SimulatedGREG/electron-vu
  - I have only tested some exchanges, which means I can't guarantee that it will work on every exchange [ccxt](https://github.com/ccxt/ccxt) provides. If yours does not work open an Issue or even better a PR with a fix.
 
 ## Screenshots ##
-![alt text](https://raw.githubusercontent.com/gobeli/pump-and-dump/master/static/screen_1.png)
+![alt text](/static/screen_1.png)
 
-![alt text](https://raw.githubusercontent.com/gobeli/pump-and-dump/master/static/screen_2.png)
+![alt text](/static/screen_2.png)
 
 ## License
 Released under the MIT license. See [LICENSE](LICENSE) for more info.
