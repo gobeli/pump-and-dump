@@ -141,13 +141,20 @@
       },
 
       fetchOrders() {
+        const addOrders = (o) => {
+          this.$store.state.exchange[o](this.market).then(orders => {
+            this.orders = [...this.orders, ...orders];
+          });
+        }
         if (this.$store.state.exchange.hasFetchOrders) {
-          this.$store.state.exchange.fetchOrders(this.market)
-            .then(orders => {
-              this.orders = orders;
-            }).catch(handleError(this));
+          addOrders('fetchOrders');
         } else {
-          this.$message({ type: 'error', message: 'Fetch Orders is not supportet by ' + this.$store.state.exchange.id })
+          if (this.$store.state.exchange.hasFetchClosedOrders) {
+            addOrders('fetchClosedOrders');
+          }
+          if (this.$store.state.exchange.hasFetchOpenOrders) {
+            addOrders('fetchOpenOrders');
+          }
         }
       },
 
