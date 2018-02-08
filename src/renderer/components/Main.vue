@@ -1,6 +1,6 @@
 <template>
   <div class="container" style="margin-top: 1rem;">
-    <pnd-execute-modal :market="selectedMarket" :strategy="strategy" :open="executeModalShown" @close-modal="executeModalShown = false"></pnd-execute-modal>
+    <pnd-execute-modal :use-modal="useModal" :market="selectedMarket" :strategy="strategy" :open="executeModalShown" @close-modal="executeModalShown = false"></pnd-execute-modal>
 
     <el-dialog
       title="Use Strategy"
@@ -36,6 +36,9 @@
             <h3>Strategy</h3>
           </div>
           <pnd-strategy-form :strategy-model="strategy"></pnd-strategy-form>
+          <div style="float: left">
+            <el-checkbox v-model="useModal">Use Modal</el-checkbox>
+          </div>
           <el-button style="float: right; margin-bottom: 20px" type="primary" v-if="!$store.state.running" @click="useStrategy">Use</el-button>
           <el-button-group style="float: right; margin-bottom: 20px" v-if="$store.state.running">
             <el-button type="danger" @click="cancel(false)">Cancel</el-button>
@@ -87,6 +90,7 @@
       },
       strategyModalShown: false,
       running: false,
+      useModal: true,
       // orders
       executeModalShown: false,
       orders: []
