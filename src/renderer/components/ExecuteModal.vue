@@ -7,7 +7,7 @@
     <h3>Trade {{market}} ({{lastPrice}})</h3>
     <p>Buy: <strong>{{quantity}} {{market}}</strong> at <strong>{{bid}}</strong></p>
     <p>Sell at <strong>{{ask}}</strong></p>
-    <el-button type="primary" @click="submit()">Ok</el-button>
+    <el-button v-if="useModal" type="primary" @click="submit()">Ok</el-button>
   </el-dialog>
 
 </template>
@@ -18,10 +18,14 @@
 
   export default {
     name: 'pnd-execute-modal',
-    props: ['open', 'strategy', 'market'],
+    props: ['open', 'strategy', 'market', 'useModal'],
     watch: {
-      open() {
+      open(val) {
         this.update();
+        if (val && !this.useModal) {
+          this.submit();
+          this.$emit('close-modal');
+        }
       },
       strategy() {
         this.update();
