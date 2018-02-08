@@ -1,8 +1,21 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import ccxt from 'ccxt';
+import cloudscraper from 'cloudscraper';
+
 
 Vue.use(Vuex);
+
+const scrapeCloudflareHttpHeaderCookie = (url) =>
+	(new Promise ((resolve, reject) =>
+		(cloudscraper.get (url, function (error, response, body) {
+			if (error) {
+				reject (error)
+			} else {
+				resolve (response.request.headers)
+			}
+		}))
+));
 
 const state = {
   exchange: null,
@@ -29,6 +42,9 @@ const mutations = {
     state.exchange = new ccxt[payload.exchange]({
       apiKey: payload.key,
       secret: payload.secret,
+    });
+    scrapeCloudflareHttpHeaderCookie(state.exchange.urls.www).then(c => {
+      state.exchange.headers = c;
     });
   },
   SET_RUNNING(state, payload) {
