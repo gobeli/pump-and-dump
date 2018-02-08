@@ -34,13 +34,13 @@ script:
 branches:
   only:
   - master
-  
+
 deploy:
   provider: releases
   api_key: $GH_TOKEN
   file:
-    - build/pump-and-dump-0.2.0.dmg
-    - build/pump-and-dump-0.2.0-x86_64.AppImage
+    - build/pump-and-dump-0.3.0-alpha3.dmg
+    - build/pump-and-dump-0.3.0-alpha3-x86_64.AppImage
   skip_cleanup: true
   on:
     tags: true
