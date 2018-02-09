@@ -1,6 +1,6 @@
 # pump-and-dump #
 [![Build status](https://img.shields.io/appveyor/ci/gobeli/pump-and-dump.svg?style=for-the-badge)](https://ci.appveyor.com/project/gobeli/pump-and-dump)[![Build Status](	https://img.shields.io/travis/gobeli/pump-and-dump.svg?style=for-the-badge)](https://travis-ci.org/gobeli/pump-and-dump)
-![Downloads](https://img.shields.io/github/downloads-pre/gobeli/pump-and-dump/0.3.0-alpha1/total.svg?style=for-the-badge)
+![Downloads](https://img.shields.io/github/downloads-pre/gobeli/pump-and-dump/total.svg?style=for-the-badge)
 
 A pump and dump application for cryptocurrencies using [ccxt](https://github.com/ccxt/ccxt)
 
