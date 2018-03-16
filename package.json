@@ -58,6 +58,7 @@
     "chart.js": "^2.7.1",
     "cloudscraper": "^1.4.1",
     "element-ui": "^2.0.4",
+    "moment": "^2.19.3",
     "node-sass": "^4.6.1",
     "node.bittrex.api": "^1.0.0",
     "sass-loader": "^6.0.6",
